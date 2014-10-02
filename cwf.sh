@@ -109,16 +109,31 @@ function askProceed() {
     fi
 }
 
+# Function timerStart: Starts a timer
+function timerStart() {
+    TIMESTART="$(date +%s)"
+}
+
+# Function timerStop: Stops the timer and stores result in seconds in $TIMER
+function timerStop() {
+    TIMESTOP="$(date +%s)"
+    TIMER=$((TIMESTOP-TIMESTART))
+}
+
 # Function emptyDir: Tries to recursively empty all target directory content
 function emptyDir() {
     echo "Warning: Directory $1 will be emptied of all content!"
     askProceed 5
     echo "Deleting all contents of directory $1, please wait..."
+    timerStart
     rm -rf $1/*
 
     if [[ $? -ne 0 ]]; then
         echo "Warning: Problem while emptying directory $1!"
         askAbort 6
+    else
+        timerStop
+        echo "Directory $1 emptied in $TIMER sec"
     fi
 }
 
@@ -127,6 +142,7 @@ function emptyDb() {
     echo "Warning: All tables in database $1 will be dropped!"
     askProceed 7
     echo "Dropping all tables in database $1, please wait..."
+    timerStart
     mysql -u "$DBUSER" -p"$DBPASS" -Nse "SHOW TABLES" $1 | while read TABLE; do
         mysql -u "$DBUSER" -p"$DBPASS" -e "DROP TABLE $TABLE" $1
     done
@@ -134,5 +150,45 @@ function emptyDb() {
     if [[ $? -ne 0 ]]; then
         echo "Warning: Problem while emptying database $1!"
         askAbort 8
+    else
+        timerStop
+        echo "Database $1 emptied in $TIMER sec"
+    fi
+}
+
+# Function cwbSyntax: Prints the correct syntax for the cwb.sh script
+function cwbSyntax() {
+    echo -e "\n\tcwb.sh syntax is:"
+    echo -e "\n\t./cwb.sh PATH_TO_WEBSITE DBNAME BACKUP_PREFIX [--ps]\n"
+}
+
+# Function backupDb: Tries to dump and compress target database
+function backupDb() {
+    echo "Dumping and compressing contents of database $1, please wait..."
+    timerStart
+    mysqldump -u "$DBUSER" -p"$DBPASS" $1 | gzip -8 > "$2"-db.sql.gz
+
+    if [[ $? -ne 0 ]]; then
+        echo "Warning: Problem while dumping database $1!"
+        askAbort 11
+    else
+        timerStop
+        echo "Database $1 compressed to file $2-db-sql.gz in $TIMER sec"
+        askProceed 12
+    fi
+}
+
+# Function backupFiles: Tries to compress target directory contents
+function backupFiles() {
+    echo "Compressing contents of directory $1, please wait..."
+    timerStart
+    XZ_OPT=-8 tar cvJpf "$2"-files.tar.xz -X $XLIST -C "$1" .
+
+    if [[ $? -ne 0 ]]; then
+        echo "Warning: Problem while compressing contents of directory $1!"
+        askAbort 13
+    else
+        timerStop
+        echo "Directory $1 compressed to file $2-files.tar.xz in $TIMER sec"
     fi
 }
