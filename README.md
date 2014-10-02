@@ -1,4 +1,4 @@
 crudeWWWutils
 =============
 
-A collection of Bash scripts for quick website cleanup/backup/restore
+A collection of Bash scripts for quick website cleanup, backup and restore
