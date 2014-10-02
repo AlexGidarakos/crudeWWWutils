@@ -58,11 +58,11 @@ getDbCredentials
 # Check database existence
 checkDbExist $2
 
-# Recursively delete all contents of target directory
-emptyDir $1
-
 # Drop all tables in target database
 emptyDb $2
+
+# Recursively delete all contents of target directory
+emptyDir $1
 
 # Done!
 echo "Done!"
