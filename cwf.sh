@@ -173,7 +173,7 @@ function backupDb() {
         askAbort 11
     else
         timerStop
-        echo "Database $1 compressed to file $2-db-sql.gz in $TIMER sec"
+        echo "Database $1 compressed to file $2-db.sql.gz in $TIMER sec"
         askProceed 12
     fi
 }
@@ -190,5 +190,53 @@ function backupFiles() {
     else
         timerStop
         echo "Directory $1 compressed to file $2-files.tar.xz in $TIMER sec"
+    fi
+}
+
+# Function cwrSyntax: Prints the correct syntax for the cwr.sh script
+function cwrSyntax() {
+    echo -e "\n\tcwr.sh syntax is:"
+    echo -e "\n\t./cwr.sh TARGET_DIRECTORY DBNAME BACKUP_PREFIX\n"
+}
+
+# Function checkBackupPair: Checks existence of backup file pair
+function checkBackupPair() {
+    if [[ ! -f $1-db.sql.gz || ! -f $1-files.tar.xz ]]; then
+        echo "Error: could not locate a backup file pair."
+        echo "Please make sure BOTH these two files exist:"
+        echo -e "\n\t$1-db-sql.gz\n\t$1-files.tar.xz"
+        echo "Aborting..."
+        exit 14
+    fi
+}
+
+# Function restoreDb: Tries to restore target database from backup
+function restoreDb() {
+    echo "Restoring contents of database $1, please wait..."
+    timerStart
+    gunzip -c $2-db.sql.gz | mysql -u "$DBUSER" -p"$DBPASS" $1
+
+    if [[ $? -ne 0 ]]; then
+        echo "Warning: Problem while restoring database $1!"
+        askAbort 15
+    else
+        timerStop
+        echo "Database $1 restored from file $2-db.sql.gz in $TIMER sec"
+        askProceed 16
+    fi
+}
+
+# Function restoreFiles: Tries to extract website files in the target directory
+function restoreFiles() {
+    echo "Extracting website files in target directory $1, please wait..."
+    timerStart
+    tar xvpf $2-files.tar.xz -C $1
+
+    if [[ $? -ne 0 ]]; then
+        echo "Warning: Problem while extracting files in target directory $1!"
+        askAbort 17
+    else
+        timerStop
+        echo "Directory $1 restored from file $2-files.tar.xz in $TIMER sec"
     fi
 }
