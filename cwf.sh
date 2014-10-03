@@ -183,13 +183,13 @@ function backupFiles() {
     echo "Compressing contents of directory $1, please wait..."
 
     if [[ -n $3  ]]; then
-        XZ_OPT=$3
+        COMPLEVEL=$3
     else
-        XZ_OPT=-3
+        COMPLEVEL=-3
     fi
 
     timerStart
-    tar cvJpf "$2"-files.tar.xz -X $XLIST -C "$1" .
+    XZ_OPT=$COMPLEVEL tar cvJpf "$2"-files.tar.xz -X $XLIST -C "$1" .
 
     if [[ $? -ne 0 ]]; then
         echo "Warning: Problem while compressing contents of directory $1!"
