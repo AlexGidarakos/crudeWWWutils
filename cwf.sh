@@ -158,8 +158,8 @@ function emptyDb() {
 
 # Function cwbSyntax: Prints the correct syntax for the cwb.sh script
 function cwbSyntax() {
-    echo -e "\n\tcwb.sh syntax is:"
-    echo -e "\n\t./cwb.sh PATH_TO_WEBSITE DBNAME BACKUP_PREFIX [--ps]\n"
+    echo -e "\n\tcwb.sh syntax is:\n"
+    echo -e "\t./cwb.sh PATH_TO_WEBSITE DBNAME BACKUP_PREFIX [--ps] [-0...9]\n"
 }
 
 # Function backupDb: Tries to dump and compress target database
@@ -181,8 +181,15 @@ function backupDb() {
 # Function backupFiles: Tries to compress target directory contents
 function backupFiles() {
     echo "Compressing contents of directory $1, please wait..."
+
+    if [[ -n $3  ]]; then
+        XZ_OPT=$3
+    else
+        XZ_OPT=-3
+    fi
+
     timerStart
-    XZ_OPT=-8 tar cvJpf "$2"-files.tar.xz -X $XLIST -C "$1" .
+    tar cvJpf "$2"-files.tar.xz -X $XLIST -C "$1" .
 
     if [[ $? -ne 0 ]]; then
         echo "Warning: Problem while compressing contents of directory $1!"

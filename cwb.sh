@@ -12,7 +12,8 @@
 # MySQL database that holds the website's data and a prefix for the two
 # resulting backup files. It also accepts an optional --ps argument that
 # activates an exclusion list for known temporary files in PrestaShop 1.6.x.
-# When starting up, the script will ask the user for proper MySQL credentials.
+# and an optional -0...9 argument that selects a compression level (default is
+# -3). The script will interactively ask the user for proper MySQL credentials.
 #
 # Compatibility:
 # The script has been developed and tested on VPSes running Debian Wheezy x86
@@ -26,7 +27,7 @@
 # the new de-facto standard for maximum compression efficiency in Linux.
 #
 # General syntax:
-#     ./cwb.sh PATH_TO_WEBSITE DBNAME BACKUP_PREFIX [--ps]
+#     ./cwb.sh PATH_TO_WEBSITE DBNAME BACKUP_PREFIX [--ps] [-0...9]
 #
 # Example syntax:
 #     ./cwb.sh /mysite/public_html/ mysitedb /mysite/backup/20141001-1538
@@ -84,7 +85,7 @@ checkDbExist $2
 backupDb $2 $3
 
 # Backup website files
-backupFiles $1 $3
+backupFiles $1 $3 $5
 
 # Done!
 echo "Done!"
